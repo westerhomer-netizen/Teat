@@ -19,13 +19,9 @@
       margin: 0 auto;
       padding: 24px;
     }
-    h1 {
-      margin: 0 0 8px;
-    }
-    .lead {
-      margin: 0 0 16px;
-      color: #4e5a6d;
-    }
+    h1 { margin: 0 0 8px; }
+    .lead { margin: 0 0 16px; color: #4e5a6d; }
+
     .tabs {
       display: flex;
       gap: 10px;
@@ -47,17 +43,35 @@
       border-color: #2f6fff;
       color: #fff;
     }
+
     .panel {
       background: #fff;
       border-radius: 14px;
       padding: 16px;
       box-shadow: 0 4px 18px rgba(24, 44, 86, 0.08);
+      margin-bottom: 16px;
     }
-    .hidden {
-      display: none;
+    .hidden { display: none; }
+
+    details {
+      border: 1px solid #d9e2f4;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfcff;
     }
-    form,
-    .quick-grid {
+    details + details { margin-top: 8px; }
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: #27417f;
+    }
+    .company-meta {
+      margin-top: 6px;
+      color: #4e5a6d;
+      font-size: 14px;
+    }
+
+    form {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
@@ -69,10 +83,7 @@
       color: #4e5a6d;
       margin-bottom: 5px;
     }
-    input,
-    select,
-    textarea,
-    button {
+    input, select, textarea, button {
       width: 100%;
       box-sizing: border-box;
       border-radius: 10px;
@@ -83,7 +94,7 @@
     }
     textarea {
       resize: vertical;
-      min-height: 110px;
+      min-height: 120px;
       line-height: 1.45;
     }
     button {
@@ -97,10 +108,6 @@
       background: #eef3ff;
       color: #27417f;
       border: 1px solid #cfdbff;
-    }
-    .quick {
-      min-height: 44px;
-      text-align: left;
     }
     .note {
       margin: 10px 0 14px;
@@ -117,13 +124,40 @@
       width: auto;
       min-width: 180px;
     }
-    .db-list {
-      margin: 0 0 18px;
-      padding-left: 18px;
-      color: #2b3a55;
+
+    .quick-row {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
     }
-    .db-list li {
-      margin: 6px 0;
+    .quick-row button {
+      width: auto;
+      white-space: nowrap;
+      min-width: 120px;
+    }
+
+    .position-item {
+      display: grid;
+      grid-template-columns: 150px 1fr auto;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    .remove-pos {
+      width: auto;
+      min-width: 44px;
+      background: #ffeff0;
+      color: #8f1f2a;
+      border: 1px solid #ffc9cf;
+    }
+    .muted { color: #607089; }
+
+    @media (max-width: 700px) {
+      .position-item {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -139,14 +173,14 @@
 
     <section class="panel" id="companyBasePanel">
       <h2>База компаний</h2>
-      <ul class="db-list" id="companyBaseList"></ul>
+      <div id="companyBaseList"></div>
     </section>
 
     <section class="panel" id="pageMail">
       <h2>Письмо для компаний</h2>
-      <p class="note">Поля можно заполнить вручную или нажать кнопку быстрого доступа из базы компаний.</p>
+      <p class="note">Быстрый доступ: только названия компаний, в одну горизонтальную линию.</p>
 
-      <div class="quick-grid" id="mailQuickButtons"></div>
+      <div class="quick-row" id="mailQuickButtons"></div>
 
       <form id="mailForm">
         <div>
@@ -158,10 +192,10 @@
           <input id="mailAddress" required placeholder="г. Москва, ул. ..." />
         </div>
         <div>
-          <label for="mailPass">Пропуск</label>
-          <select id="mailPass">
-            <option>нужен</option>
-            <option>не нужен</option>
+          <label for="mailActionType">Тип операции</label>
+          <select id="mailActionType">
+            <option>вывоз</option>
+            <option>доставка</option>
           </select>
         </div>
         <div>
@@ -169,33 +203,11 @@
           <input id="mailDate" type="date" />
         </div>
 
-        <div>
-          <label for="mailQtyOne">Позиция 1: количество</label>
-          <input id="mailQtyOne" type="number" min="0" value="0" />
-        </div>
-        <div>
-          <label for="mailTypeOne">Позиция 1: тип</label>
-          <select id="mailTypeOne">
-            <option>архивных коробов</option>
-            <option>архивных коробов с крышками</option>
-            <option>ККСУД</option>
-            <option>утиля</option>
-            <option>расходных материалов</option>
-          </select>
-        </div>
-        <div>
-          <label for="mailQtyTwo">Позиция 2: количество</label>
-          <input id="mailQtyTwo" type="number" min="0" value="0" />
-        </div>
-        <div>
-          <label for="mailTypeTwo">Позиция 2: тип</label>
-          <select id="mailTypeTwo">
-            <option>архивных коробов</option>
-            <option selected>архивных коробов с крышками</option>
-            <option>ККСУД</option>
-            <option>утиля</option>
-            <option>расходных материалов</option>
-          </select>
+        <div style="grid-column: 1 / -1;">
+          <label>Позиции</label>
+          <div id="positionsContainer"></div>
+          <button class="secondary" type="button" id="addPositionBtn">+ Добавить позицию</button>
+          <div class="note muted">По умолчанию есть одна позиция. Можно добавить дополнительные.</div>
         </div>
 
         <div>
@@ -220,7 +232,7 @@
         <textarea id="mailResult" readonly></textarea>
         <div class="actions">
           <button class="secondary" type="button" id="copyMailBtn">Скопировать текст</button>
-          <button class="secondary" type="button" id="downloadMailBtn">Скачать текст .txt</button>
+          <button class="secondary" type="button" id="downloadMailPngBtn">Скачать PNG письма</button>
         </div>
       </div>
     </section>
@@ -229,7 +241,7 @@
       <h2>Короткая сводка на следующий день</h2>
       <p class="note">Содержит: название компании, улицу, количество коробов и нужен ли пропуск.</p>
 
-      <div class="quick-grid" id="summaryQuickButtons"></div>
+      <div class="quick-row" id="summaryQuickButtons"></div>
 
       <form id="summaryForm">
         <div>
@@ -296,6 +308,15 @@
       },
     ];
 
+    const cargoTypes = [
+      'архивных коробов',
+      'архивных коробов с крышками',
+      'ККСУД',
+      'утиля',
+      'пломбы',
+      'папки',
+    ];
+
     const tabMail = document.getElementById('tabMail');
     const tabSummary = document.getElementById('tabSummary');
     const pageMail = document.getElementById('pageMail');
@@ -303,9 +324,11 @@
 
     const mailDateInput = document.getElementById('mailDate');
     const summaryDateInput = document.getElementById('summaryDate');
-
     const mailResult = document.getElementById('mailResult');
     const summaryResult = document.getElementById('summaryResult');
+
+    const positionsContainer = document.getElementById('positionsContainer');
+    const addPositionBtn = document.getElementById('addPositionBtn');
 
     function switchTab(tab) {
       const isMail = tab === 'mail';
@@ -378,28 +401,99 @@
       URL.revokeObjectURL(link.href);
     }
 
+    function downloadMailAsPng(text) {
+      const lines = text.split('\n');
+      const font = '24px Arial';
+      const lineHeight = 38;
+      const padding = 40;
+
+      const measure = document.createElement('canvas').getContext('2d');
+      measure.font = font;
+      const maxWidth = Math.max(...lines.map((line) => measure.measureText(line).width), 600);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(maxWidth + padding * 2);
+      canvas.height = Math.ceil(lines.length * lineHeight + padding * 2);
+
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#1e2a3a';
+      ctx.font = font;
+
+      lines.forEach((line, i) => {
+        ctx.fillText(line, padding, padding + (i + 1) * lineHeight);
+      });
+
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `pismo-perevozchiku-${toDateInputValue(new Date())}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function createPositionRow(initialQty = 0, initialType = cargoTypes[0]) {
+      const row = document.createElement('div');
+      row.className = 'position-item';
+
+      const qty = document.createElement('input');
+      qty.type = 'number';
+      qty.min = '0';
+      qty.value = String(initialQty);
+      qty.className = 'pos-qty';
+
+      const type = document.createElement('select');
+      type.className = 'pos-type';
+      cargoTypes.forEach((t) => {
+        const option = document.createElement('option');
+        option.value = t;
+        option.textContent = t;
+        if (t === initialType) option.selected = true;
+        type.appendChild(option);
+      });
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'remove-pos';
+      remove.textContent = '✕';
+      remove.addEventListener('click', () => {
+        if (positionsContainer.children.length === 1) return;
+        row.remove();
+      });
+
+      row.append(qty, type, remove);
+      positionsContainer.appendChild(row);
+    }
+
+    function getPositionLines() {
+      const rows = Array.from(positionsContainer.querySelectorAll('.position-item'));
+      return rows
+        .map((row) => {
+          const qty = Number(row.querySelector('.pos-qty').value);
+          const type = row.querySelector('.pos-type').value;
+          return makeLine(qty, type);
+        })
+        .filter(Boolean);
+    }
+
     function buildMailText() {
       const company = document.getElementById('mailCompany').value.trim();
       const address = document.getElementById('mailAddress').value.trim();
-      const pass = document.getElementById('mailPass').value;
-      const qtyOne = Number(document.getElementById('mailQtyOne').value);
-      const typeOne = document.getElementById('mailTypeOne').value;
-      const qtyTwo = Number(document.getElementById('mailQtyTwo').value);
-      const typeTwo = document.getElementById('mailTypeTwo').value;
+      const actionType = document.getElementById('mailActionType').value;
       const phone = document.getElementById('mailPhone').value.trim();
       const name = document.getElementById('mailName').value.trim();
       const extra = document.getElementById('mailExtra').value.trim();
 
       const selectedDate = mailDateInput.value ? new Date(`${mailDateInput.value}T00:00:00`) : getNextBusinessDay();
-      const lines = [makeLine(qtyOne, typeOne), makeLine(qtyTwo, typeTwo)].filter(Boolean);
+      const lines = getPositionLines();
       const cargoText = lines.length ? lines.join(' + ') : 'без указания количества';
 
       return [
         'Здравствуйте,',
         '',
-        `Направляю данные на вывоз/доставку для компании ${company}.`,
+        `Направляю данные на ${actionType} для компании ${company}.`,
         `Адрес: ${address} - ${cargoText}.`,
-        `Пропуск: ${pass}.`,
         `Дата: ${formatDate(selectedDate)}.`,
         `Контакт: ${phone} (${name}).`,
         extra ? `Дополнительно: ${extra}` : '',
@@ -425,7 +519,6 @@
     function fillMailFromCompany(company) {
       document.getElementById('mailCompany').value = company.name;
       document.getElementById('mailAddress').value = company.address;
-      document.getElementById('mailPass').value = company.passRequired;
       mailResult.value = buildMailText();
     }
 
@@ -439,33 +532,46 @@
     function renderCompanyBase() {
       const companyBaseList = document.getElementById('companyBaseList');
       companyBaseList.innerHTML = '';
-      companies.forEach((company) => {
-        const item = document.createElement('li');
-        item.textContent = `${company.name} — ${company.address} (${company.frequency}), пропуск: ${company.passRequired}`;
-        companyBaseList.appendChild(item);
+      companies.forEach((company, index) => {
+        const details = document.createElement('details');
+        if (index === 0) details.open = true;
+
+        const summary = document.createElement('summary');
+        summary.textContent = company.name;
+
+        const meta = document.createElement('div');
+        meta.className = 'company-meta';
+        meta.textContent = `${company.address}. Частота: ${company.frequency}. Пропуск: ${company.passRequired}.`;
+
+        details.append(summary, meta);
+        companyBaseList.appendChild(details);
       });
     }
 
     function renderQuickButtons() {
       const mailQuickButtons = document.getElementById('mailQuickButtons');
       const summaryQuickButtons = document.getElementById('summaryQuickButtons');
+      mailQuickButtons.innerHTML = '';
+      summaryQuickButtons.innerHTML = '';
 
       companies.forEach((company) => {
         const mailBtn = document.createElement('button');
         mailBtn.type = 'button';
-        mailBtn.className = 'secondary quick';
-        mailBtn.textContent = `${company.name} (${company.frequency}, пропуск: ${company.passRequired})`;
+        mailBtn.className = 'secondary';
+        mailBtn.textContent = company.name;
         mailBtn.addEventListener('click', () => fillMailFromCompany(company));
         mailQuickButtons.appendChild(mailBtn);
 
         const summaryBtn = document.createElement('button');
         summaryBtn.type = 'button';
-        summaryBtn.className = 'secondary quick';
-        summaryBtn.textContent = `${company.name} (${company.street})`;
+        summaryBtn.className = 'secondary';
+        summaryBtn.textContent = company.name;
         summaryBtn.addEventListener('click', () => fillSummaryFromCompany(company));
         summaryQuickButtons.appendChild(summaryBtn);
       });
     }
+
+    addPositionBtn.addEventListener('click', () => createPositionRow(0, cargoTypes[0]));
 
     document.getElementById('generateMailBtn').addEventListener('click', () => {
       mailResult.value = buildMailText();
@@ -476,9 +582,9 @@
       await navigator.clipboard.writeText(mailResult.value);
     });
 
-    document.getElementById('downloadMailBtn').addEventListener('click', () => {
+    document.getElementById('downloadMailPngBtn').addEventListener('click', () => {
       if (!mailResult.value.trim()) mailResult.value = buildMailText();
-      downloadText(mailResult.value, 'zayavka-perevozchiku');
+      downloadMailAsPng(mailResult.value);
     });
 
     document.getElementById('generateSummaryBtn').addEventListener('click', () => {
@@ -499,6 +605,7 @@
     mailDateInput.value = nextBusinessDay;
     summaryDateInput.value = nextBusinessDay;
 
+    createPositionRow();
     renderCompanyBase();
     renderQuickButtons();
     fillMailFromCompany(companies[0]);
