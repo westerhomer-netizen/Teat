@@ -117,6 +117,14 @@
       width: auto;
       min-width: 180px;
     }
+    .db-list {
+      margin: 0 0 18px;
+      padding-left: 18px;
+      color: #2b3a55;
+    }
+    .db-list li {
+      margin: 6px 0;
+    }
   </style>
 </head>
 <body>
@@ -128,6 +136,11 @@
       <button class="tab-btn active" id="tabMail" type="button">Страница 1: Письмо</button>
       <button class="tab-btn" id="tabSummary" type="button">Страница 2: Сводка</button>
     </div>
+
+    <section class="panel" id="companyBasePanel">
+      <h2>База компаний</h2>
+      <ul class="db-list" id="companyBaseList"></ul>
+    </section>
 
     <section class="panel" id="pageMail">
       <h2>Письмо для компаний</h2>
@@ -423,6 +436,16 @@
       summaryResult.value = buildSummaryText();
     }
 
+    function renderCompanyBase() {
+      const companyBaseList = document.getElementById('companyBaseList');
+      companyBaseList.innerHTML = '';
+      companies.forEach((company) => {
+        const item = document.createElement('li');
+        item.textContent = `${company.name} — ${company.address} (${company.frequency}), пропуск: ${company.passRequired}`;
+        companyBaseList.appendChild(item);
+      });
+    }
+
     function renderQuickButtons() {
       const mailQuickButtons = document.getElementById('mailQuickButtons');
       const summaryQuickButtons = document.getElementById('summaryQuickButtons');
@@ -476,6 +499,7 @@
     mailDateInput.value = nextBusinessDay;
     summaryDateInput.value = nextBusinessDay;
 
+    renderCompanyBase();
     renderQuickButtons();
     fillMailFromCompany(companies[0]);
     fillSummaryFromCompany(companies[0]);
