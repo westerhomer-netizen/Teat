@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Логистика перевозок</title>
+  <style>
+    :root {
+      font-family: Inter, Arial, sans-serif;
+      color-scheme: light;
+    }
+    body {
+      margin: 0;
+      background: #f6f7fb;
+      color: #1e2a3a;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+    p.lead {
+      margin-top: 0;
+      color: #4e5a6d;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 4px 18px rgba(24, 44, 86, 0.08);
+    }
+    .card h3 {
+      margin-top: 0;
+      font-size: 16px;
+      color: #2b3a55;
+    }
+    .metric {
+      font-size: 28px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    .panel {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 4px 18px rgba(24, 44, 86, 0.08);
+      margin-top: 18px;
+    }
+    form,
+    .mail-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      color: #4e5a6d;
+      margin-bottom: 5px;
+    }
+    input,
+    select,
+    textarea,
+    button {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 10px;
+      border: 1px solid #cdd5e4;
+      padding: 10px;
+      font-size: 14px;
+      background: #fff;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+    button {
+      border: 0;
+      background: #2f6fff;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #255de0;
+    }
+    .secondary {
+      background: #eef3ff;
+      color: #27417f;
+      border: 1px solid #cfdbff;
+    }
+    .secondary:hover {
+      background: #e2ebff;
+    }
+    .note {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #4e5a6d;
+    }
+    table {
+      width: 100%;
+      margin-top: 18px;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 18px rgba(24, 44, 86, 0.08);
+    }
+    th,
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #edf0f5;
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th {
+      background: #f3f6ff;
+      color: #36486b;
+      font-weight: 600;
+    }
+    .status {
+      font-weight: 700;
+    }
+    .ok {
+      color: #1f8f52;
+    }
+    .warn {
+      color: #c37200;
+    }
+    .mail-output {
+      margin-top: 12px;
+    }
+    .mail-output textarea {
+      min-height: 210px;
+      font-family: inherit;
+      line-height: 1.45;
+    }
+    .mail-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .mail-actions button {
+      width: auto;
+      min-width: 180px;
+    }
+    @media (max-width: 650px) {
+      .container {
+        padding: 14px;
+      }
+      th:nth-child(5),
+      td:nth-child(5) {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Панель логистики перевозок</h1>
+    <p class="lead">
+      Без хранения: фокус на перевозчиках, коробах, расходниках, адресах доставки и вместимости машин.
+    </p>
+
+    <section class="grid" id="metrics"></section>
+
+    <section class="panel">
+      <h2>Добавление рейса</h2>
+      <form id="shipmentForm">
+        <div>
+          <label for="carrier">Перевозчик</label>
+          <input id="carrier" required placeholder="ООО ТрансЛайн" />
+        </div>
+        <div>
+          <label for="boxes">Кол-во коробов</label>
+          <input id="boxes" type="number" min="1" required placeholder="120" />
+        </div>
+        <div>
+          <label for="consumables">Расходные материалы</label>
+          <input id="consumables" required placeholder="Стретч: 20, Скотч: 10" />
+        </div>
+        <div>
+          <label for="address">Адрес доставки</label>
+          <input id="address" required placeholder="г. Москва, ул. Ленина, 10" />
+        </div>
+        <div>
+          <label for="capacity">Вместимость машины (коробов)</label>
+          <input id="capacity" type="number" min="1" required placeholder="150" />
+        </div>
+        <div>
+          <button type="submit">Добавить рейс</button>
+        </div>
+      </form>
+      <div class="note">Статус рассчитывается автоматически: если коробов больше вместимости — перегруз.</div>
+    </section>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Перевозчик</th>
+          <th>Короба</th>
+          <th>Вместимость</th>
+          <th>Статус загрузки</th>
+          <th>Расходники</th>
+          <th>Адрес доставки</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+
+    <section class="panel">
+      <h2>Генератор текста для перевозчика</h2>
+      <form class="mail-form" id="mailForm">
+        <div>
+          <label for="mailAddress">Адрес</label>
+          <input id="mailAddress" required placeholder="г. Москва, ул. Ленина, 10" />
+        </div>
+        <div>
+          <label for="mailQtyOne">Позиция 1: количество</label>
+          <input id="mailQtyOne" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="mailTypeOne">Позиция 1: тип</label>
+          <select id="mailTypeOne">
+            <option>архивных коробов</option>
+            <option>архивных коробов с крышками</option>
+            <option>ККСУД</option>
+            <option>утиля</option>
+            <option>расходных материалов</option>
+          </select>
+        </div>
+        <div>
+          <label for="mailQtyTwo">Позиция 2: количество</label>
+          <input id="mailQtyTwo" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="mailTypeTwo">Позиция 2: тип</label>
+          <select id="mailTypeTwo">
+            <option>архивных коробов</option>
+            <option selected>архивных коробов с крышками</option>
+            <option>ККСУД</option>
+            <option>утиля</option>
+            <option>расходных материалов</option>
+          </select>
+        </div>
+        <div>
+          <label for="mailDate">Дата (по умолчанию: следующий рабочий день)</label>
+          <input id="mailDate" type="date" />
+        </div>
+        <div>
+          <label for="mailPhone">Контактный телефон</label>
+          <input id="mailPhone" required placeholder="+7 999 123-45-67" />
+        </div>
+        <div>
+          <label for="mailName">Контактное имя</label>
+          <input id="mailName" required placeholder="Иван" />
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label for="mailExtra">Дополнительная информация для письма</label>
+          <textarea id="mailExtra" placeholder="Например: подъезд со стороны двора, пропуск оформить на водителя."></textarea>
+        </div>
+        <div>
+          <button type="button" id="generateMailBtn">Сформировать текст</button>
+        </div>
+      </form>
+
+      <div class="mail-output">
+        <label for="mailResult">Готовый текст</label>
+        <textarea id="mailResult" readonly></textarea>
+        <div class="mail-actions">
+          <button class="secondary" type="button" id="copyMailBtn">Скопировать текст</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      shipments: [
+        {
+          carrier: 'ООО ТрансЛайн',
+          boxes: 120,
+          consumables: 'Стретч: 20, Скотч: 10',
+          address: 'Москва, Рябиновая 34',
+          capacity: 150,
+        },
+        {
+          carrier: 'ИП ЛогистикСервис',
+          boxes: 95,
+          consumables: 'Пломбы: 80, Этикетки: 300',
+          address: 'Тверь, Промышленная 5',
+          capacity: 90,
+        },
+      ],
+    };
+
+    const tableBody = document.getElementById('tableBody');
+    const metrics = document.getElementById('metrics');
+    const form = document.getElementById('shipmentForm');
+
+    const mailDateInput = document.getElementById('mailDate');
+    const mailResult = document.getElementById('mailResult');
+    const generateMailBtn = document.getElementById('generateMailBtn');
+    const copyMailBtn = document.getElementById('copyMailBtn');
+
+    function calcStatus(shipment) {
+      if (shipment.boxes > shipment.capacity) return { label: 'Перегруз', cls: 'warn' };
+      return { label: 'Норма', cls: 'ok' };
+    }
+
+    function renderMetrics() {
+      const totalCarriers = new Set(state.shipments.map((s) => s.carrier)).size;
+      const totalBoxes = state.shipments.reduce((sum, s) => sum + s.boxes, 0);
+      const overloaded = state.shipments.filter((s) => s.boxes > s.capacity).length;
+      const totalCapacity = state.shipments.reduce((sum, s) => sum + s.capacity, 0);
+
+      metrics.innerHTML = `
+        <article class="card"><h3>Перевозчики</h3><div class="metric">${totalCarriers}</div></article>
+        <article class="card"><h3>Всего коробов</h3><div class="metric">${totalBoxes}</div></article>
+        <article class="card"><h3>Машины с перегрузом</h3><div class="metric">${overloaded}</div></article>
+        <article class="card"><h3>Совокупная вместимость</h3><div class="metric">${totalCapacity}</div></article>
+      `;
+    }
+
+    function renderTable() {
+      tableBody.innerHTML = '';
+      state.shipments.forEach((shipment) => {
+        const row = document.createElement('tr');
+        const status = calcStatus(shipment);
+        row.innerHTML = `
+          <td>${shipment.carrier}</td>
+          <td>${shipment.boxes}</td>
+          <td>${shipment.capacity}</td>
+          <td class="status ${status.cls}">${status.label}</td>
+          <td>${shipment.consumables}</td>
+          <td>${shipment.address}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function getNextBusinessDay() {
+      const date = new Date();
+      date.setDate(date.getDate() + 1);
+      while (date.getDay() === 0 || date.getDay() === 6) {
+        date.setDate(date.getDate() + 1);
+      }
+      return date;
+    }
+
+    function formatDate(date) {
+      return date.toLocaleDateString('ru-RU');
+    }
+
+    function toDateInputValue(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function numberToWordsRu(number) {
+      const units = [
+        '', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять',
+      ];
+      const teens = [
+        'десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать',
+        'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать',
+      ];
+      const tens = [
+        '', '', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто',
+      ];
+      const hundreds = [
+        '', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот',
+      ];
+
+      if (number === 0) return 'ноль';
+      if (number > 999) return String(number);
+
+      const h = Math.floor(number / 100);
+      const t = Math.floor((number % 100) / 10);
+      const u = number % 10;
+
+      const parts = [];
+      if (h > 0) parts.push(hundreds[h]);
+      if (t === 1) {
+        parts.push(teens[u]);
+      } else {
+        if (t > 1) parts.push(tens[t]);
+        if (u > 0) parts.push(units[u]);
+      }
+      return parts.join(' ');
+    }
+
+    function makeLine(qty, type) {
+      if (!qty || qty < 1) return '';
+      return `${qty} (${numberToWordsRu(qty)}) ${type}`;
+    }
+
+    function buildMailText() {
+      const address = document.getElementById('mailAddress').value.trim();
+      const qtyOne = Number(document.getElementById('mailQtyOne').value);
+      const typeOne = document.getElementById('mailTypeOne').value;
+      const qtyTwo = Number(document.getElementById('mailQtyTwo').value);
+      const typeTwo = document.getElementById('mailTypeTwo').value;
+      const phone = document.getElementById('mailPhone').value.trim();
+      const name = document.getElementById('mailName').value.trim();
+      const extra = document.getElementById('mailExtra').value.trim();
+
+      const selectedDate = mailDateInput.value
+        ? new Date(`${mailDateInput.value}T00:00:00`)
+        : getNextBusinessDay();
+
+      const lineOne = makeLine(qtyOne, typeOne);
+      const lineTwo = makeLine(qtyTwo, typeTwo);
+      const lines = [lineOne, lineTwo].filter(Boolean);
+      const cargoText = lines.length ? lines.join(' + ') : 'без указания количества';
+
+      return [
+        'Здравствуйте,',
+        '',
+        'Направляю данные на вывоз/доставку архивных коробов/расходных материалов/утиля.',
+        `Адрес: ${address} - ${cargoText}.`,
+        `Дата: ${formatDate(selectedDate)}.`,
+        `Контакт: ${phone} (${name}).`,
+        extra ? `Дополнительно: ${extra}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n');
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const shipment = {
+        carrier: document.getElementById('carrier').value.trim(),
+        boxes: Number(document.getElementById('boxes').value),
+        consumables: document.getElementById('consumables').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        capacity: Number(document.getElementById('capacity').value),
+      };
+
+      state.shipments.push(shipment);
+      form.reset();
+      renderMetrics();
+      renderTable();
+    });
+
+    generateMailBtn.addEventListener('click', () => {
+      mailResult.value = buildMailText();
+    });
+
+    copyMailBtn.addEventListener('click', async () => {
+      if (!mailResult.value.trim()) mailResult.value = buildMailText();
+      await navigator.clipboard.writeText(mailResult.value);
+      copyMailBtn.textContent = 'Скопировано';
+      setTimeout(() => {
+        copyMailBtn.textContent = 'Скопировать текст';
+      }, 1500);
+    });
+
+    mailDateInput.value = toDateInputValue(getNextBusinessDay());
+    mailResult.value = buildMailText();
+    renderMetrics();
+    renderTable();
+  </script>
+</body>
+</html>
