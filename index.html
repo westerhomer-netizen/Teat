@@ -164,17 +164,13 @@
 <body>
   <div class="container">
     <h1>Логистика компаний</h1>
-    <p class="lead">Две страницы: письмо перевозчику и короткая сводка на следующий рабочий день.</p>
+    <p class="lead">Три страницы: письмо, короткая сводка и база компаний.</p>
 
     <div class="tabs">
       <button class="tab-btn active" id="tabMail" type="button">Страница 1: Письмо</button>
       <button class="tab-btn" id="tabSummary" type="button">Страница 2: Сводка</button>
+      <button class="tab-btn" id="tabBase" type="button">Страница 3: База компаний</button>
     </div>
-
-    <section class="panel" id="companyBasePanel">
-      <h2>База компаний</h2>
-      <div id="companyBaseList"></div>
-    </section>
 
     <section class="panel" id="pageMail">
       <h2>Письмо для компаний</h2>
@@ -239,22 +235,22 @@
 
     <section class="panel hidden" id="pageSummary">
       <h2>Короткая сводка на следующий день</h2>
-      <p class="note">Содержит: название компании, улицу, количество коробов и нужен ли пропуск.</p>
+      <p class="note">Сводка заполняется автоматически при нажатии «Сформировать письмо»: улица, тип доставки, позиция, нужен ли пропуск.</p>
 
       <div class="quick-row" id="summaryQuickButtons"></div>
 
       <form id="summaryForm">
         <div>
-          <label for="summaryCompany">Компания</label>
-          <input id="summaryCompany" required placeholder="Например: ПСБ" />
-        </div>
-        <div>
           <label for="summaryStreet">Улица</label>
-          <input id="summaryStreet" required placeholder="ул. Смирновская, д. 10с22" />
+          <input id="summaryStreet" placeholder="ул. Смирновская, д. 10с22" />
         </div>
         <div>
-          <label for="summaryBoxes">Кол-во коробов</label>
-          <input id="summaryBoxes" type="number" min="0" value="0" required />
+          <label for="summaryDeliveryType">Тип доставки</label>
+          <input id="summaryDeliveryType" placeholder="вывоз/доставка" />
+        </div>
+        <div>
+          <label for="summaryPosition">Позиция</label>
+          <input id="summaryPosition" placeholder="120 (сто двадцать) архивных коробов" />
         </div>
         <div>
           <label for="summaryPass">Пропуск</label>
@@ -278,8 +274,14 @@
         <div class="actions">
           <button class="secondary" type="button" id="copySummaryBtn">Скопировать сводку</button>
           <button class="secondary" type="button" id="downloadSummaryBtn">Скачать сводку .txt</button>
+          <button class="secondary" type="button" id="clearSummaryBtn">Очистить сводку</button>
         </div>
       </div>
+    </section>
+
+    <section class="panel hidden" id="pageBase">
+      <h2>База компаний</h2>
+      <div id="companyBaseList"></div>
     </section>
   </div>
 
@@ -328,8 +330,10 @@
 
     const tabMail = document.getElementById('tabMail');
     const tabSummary = document.getElementById('tabSummary');
+    const tabBase = document.getElementById('tabBase');
     const pageMail = document.getElementById('pageMail');
     const pageSummary = document.getElementById('pageSummary');
+    const pageBase = document.getElementById('pageBase');
 
     const mailDateInput = document.getElementById('mailDate');
     const summaryDateInput = document.getElementById('summaryDate');
@@ -341,14 +345,21 @@
 
     function switchTab(tab) {
       const isMail = tab === 'mail';
+      const isSummary = tab === 'summary';
+      const isBase = tab === 'base';
+
       tabMail.classList.toggle('active', isMail);
-      tabSummary.classList.toggle('active', !isMail);
+      tabSummary.classList.toggle('active', isSummary);
+      tabBase.classList.toggle('active', isBase);
+
       pageMail.classList.toggle('hidden', !isMail);
-      pageSummary.classList.toggle('hidden', isMail);
+      pageSummary.classList.toggle('hidden', !isSummary);
+      pageBase.classList.toggle('hidden', !isBase);
     }
 
     tabMail.addEventListener('click', () => switchTab('mail'));
     tabSummary.addEventListener('click', () => switchTab('summary'));
+    tabBase.addEventListener('click', () => switchTab('base'));
 
     function getNextBusinessDay() {
       const date = new Date();
@@ -516,19 +527,32 @@
     }
 
     function buildSummaryText() {
-      const company = document.getElementById('summaryCompany').value.trim();
       const street = document.getElementById('summaryStreet').value.trim();
-      const boxes = Number(document.getElementById('summaryBoxes').value);
+      const deliveryType = document.getElementById('summaryDeliveryType').value.trim();
+      const position = document.getElementById('summaryPosition').value.trim();
       const pass = document.getElementById('summaryPass').value;
       const selectedDate = summaryDateInput.value ? new Date(`${summaryDateInput.value}T00:00:00`) : getNextBusinessDay();
 
       return [
         `Сводка на ${formatDate(selectedDate)}:`,
-        `Компания: ${company}`,
-        `Улица: ${street}`,
-        `Кол-во коробов: ${boxes}`,
+        `Улица: ${street || '-'}`,
+        `Тип доставки: ${deliveryType || '-'}`,
+        `Позиция: ${position || '-'}`,
         `Пропуск: ${pass}`,
       ].join('\n');
+    }
+
+    function syncSummaryFromMail() {
+      const address = document.getElementById('mailAddress').value.trim();
+      const actionType = document.getElementById('mailActionType').value;
+      const lines = getPositionLines();
+      const pass = companies.find((c) => c.name === document.getElementById('mailCompany').value.trim())?.passRequired || 'нужен';
+
+      document.getElementById('summaryStreet').value = address || '';
+      document.getElementById('summaryDeliveryType').value = getActionText(actionType);
+      document.getElementById('summaryPosition').value = lines.join(' + ') || '';
+      document.getElementById('summaryPass').value = pass;
+      summaryResult.value = buildSummaryText();
     }
 
     function fillMailFromCompany(company) {
@@ -540,8 +564,9 @@
     }
 
     function fillSummaryFromCompany(company) {
-      document.getElementById('summaryCompany').value = company.name;
       document.getElementById('summaryStreet').value = company.street;
+      document.getElementById('summaryDeliveryType').value = '';
+      document.getElementById('summaryPosition').value = '';
       document.getElementById('summaryPass').value = company.passRequired;
       summaryResult.value = buildSummaryText();
     }
@@ -592,6 +617,7 @@
 
     document.getElementById('generateMailBtn').addEventListener('click', () => {
       mailResult.value = buildMailText();
+      syncSummaryFromMail();
     });
 
     document.getElementById('copyMailBtn').addEventListener('click', async () => {
@@ -616,6 +642,17 @@
     document.getElementById('downloadSummaryBtn').addEventListener('click', () => {
       if (!summaryResult.value.trim()) summaryResult.value = buildSummaryText();
       downloadText(summaryResult.value, 'svodka-na-zavtra');
+    });
+
+    document.getElementById('clearSummaryBtn').addEventListener('click', () => {
+      const confirmed = window.confirm('Очистить сводку?');
+      if (!confirmed) return;
+
+      document.getElementById('summaryStreet').value = '';
+      document.getElementById('summaryDeliveryType').value = '';
+      document.getElementById('summaryPosition').value = '';
+      document.getElementById('summaryPass').value = 'нужен';
+      summaryResult.value = '';
     });
 
     const nextBusinessDay = toDateInputValue(getNextBusinessDay());
