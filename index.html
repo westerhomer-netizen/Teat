@@ -235,21 +235,34 @@
 
     <section class="panel hidden" id="pageSummary">
       <h2>Короткая сводка на следующий день</h2>
-      <p class="note">Сводка заполняется автоматически при нажатии «Сформировать письмо»: улица, тип доставки, позиция, нужен ли пропуск.</p>
+      <p class="note">Сводка пополняется автоматически при каждом нажатии «Сформировать письмо».</p>
+
+      <div>
+        <label for="summaryResult">Готовый текст сводки</label>
+        <textarea id="summaryResult" readonly style="min-height: 240px;"></textarea>
+        <div class="actions">
+          <button class="secondary" type="button" id="copySummaryBtn">Скопировать сводку</button>
+          <button class="secondary" type="button" id="downloadSummaryBtn">Скачать сводку .txt</button>
+        </div>
+      </div>
 
       <div class="quick-row" id="summaryQuickButtons"></div>
 
       <form id="summaryForm">
         <div>
+          <label for="summaryCompany">Компания</label>
+          <input id="summaryCompany" placeholder="Например: ВЭБ" />
+        </div>
+        <div>
           <label for="summaryStreet">Улица</label>
           <input id="summaryStreet" placeholder="ул. Смирновская, д. 10с22" />
         </div>
         <div>
-          <label for="summaryDeliveryType">Тип доставки</label>
+          <label for="summaryDeliveryType">Тип операции</label>
           <input id="summaryDeliveryType" placeholder="вывоз/доставка" />
         </div>
         <div>
-          <label for="summaryPosition">Позиция</label>
+          <label for="summaryPosition">Позиции</label>
           <input id="summaryPosition" placeholder="120 (сто двадцать) архивных коробов" />
         </div>
         <div>
@@ -266,17 +279,10 @@
         <div>
           <button type="button" id="generateSummaryBtn">Сформировать сводку</button>
         </div>
-      </form>
-
-      <div>
-        <label for="summaryResult">Готовый текст сводки</label>
-        <textarea id="summaryResult" readonly></textarea>
-        <div class="actions">
-          <button class="secondary" type="button" id="copySummaryBtn">Скопировать сводку</button>
-          <button class="secondary" type="button" id="downloadSummaryBtn">Скачать сводку .txt</button>
+        <div>
           <button class="secondary" type="button" id="clearSummaryBtn">Очистить сводку</button>
         </div>
-      </div>
+      </form>
     </section>
 
     <section class="panel hidden" id="pageBase">
@@ -527,6 +533,7 @@
     }
 
     function buildSummaryText() {
+      const company = document.getElementById('summaryCompany').value.trim();
       const street = document.getElementById('summaryStreet').value.trim();
       const deliveryType = document.getElementById('summaryDeliveryType').value.trim();
       const position = document.getElementById('summaryPosition').value.trim();
@@ -535,24 +542,35 @@
 
       return [
         `Сводка на ${formatDate(selectedDate)}:`,
+        `Компания: ${company || '-'}`,
         `Улица: ${street || '-'}`,
-        `Тип доставки: ${deliveryType || '-'}`,
-        `Позиция: ${position || '-'}`,
+        `Тип операции: ${deliveryType || '-'}`,
+        `Позиции: ${position || '-'}`,
         `Пропуск: ${pass}`,
       ].join('\n');
     }
 
     function syncSummaryFromMail() {
+      const company = document.getElementById('mailCompany').value.trim();
       const address = document.getElementById('mailAddress').value.trim();
       const actionType = document.getElementById('mailActionType').value;
       const lines = getPositionLines();
-      const pass = companies.find((c) => c.name === document.getElementById('mailCompany').value.trim())?.passRequired || 'нужен';
+      const pass = companies.find((c) => c.name === company)?.passRequired || 'нужен';
 
+      document.getElementById('summaryCompany').value = company || '';
       document.getElementById('summaryStreet').value = address || '';
-      document.getElementById('summaryDeliveryType').value = getActionText(actionType);
+      document.getElementById('summaryDeliveryType').value = actionType;
       document.getElementById('summaryPosition').value = lines.join(' + ') || '';
       document.getElementById('summaryPass').value = pass;
-      summaryResult.value = buildSummaryText();
+
+      const nextLine = buildSummaryText();
+      if (summaryResult.value.trim()) {
+        summaryResult.value += `
+
+${nextLine}`;
+      } else {
+        summaryResult.value = nextLine;
+      }
     }
 
     function fillMailFromCompany(company) {
@@ -564,6 +582,7 @@
     }
 
     function fillSummaryFromCompany(company) {
+      document.getElementById('summaryCompany').value = company.name;
       document.getElementById('summaryStreet').value = company.street;
       document.getElementById('summaryDeliveryType').value = '';
       document.getElementById('summaryPosition').value = '';
@@ -648,6 +667,7 @@
       const confirmed = window.confirm('Очистить сводку?');
       if (!confirmed) return;
 
+      document.getElementById('summaryCompany').value = '';
       document.getElementById('summaryStreet').value = '';
       document.getElementById('summaryDeliveryType').value = '';
       document.getElementById('summaryPosition').value = '';
