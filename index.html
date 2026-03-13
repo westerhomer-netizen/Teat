@@ -287,6 +287,7 @@
         <textarea id="mailResult" readonly></textarea>
         <div class="mail-actions">
           <button class="secondary" type="button" id="copyMailBtn">Скопировать текст</button>
+          <button class="secondary" type="button" id="downloadMailBtn">Скачать текст .txt</button>
         </div>
       </div>
     </section>
@@ -320,6 +321,7 @@
     const mailResult = document.getElementById('mailResult');
     const generateMailBtn = document.getElementById('generateMailBtn');
     const copyMailBtn = document.getElementById('copyMailBtn');
+    const downloadMailBtn = document.getElementById('downloadMailBtn');
 
     function calcStatus(shipment) {
       if (shipment.boxes > shipment.capacity) return { label: 'Перегруз', cls: 'warn' };
@@ -474,6 +476,20 @@
       setTimeout(() => {
         copyMailBtn.textContent = 'Скопировать текст';
       }, 1500);
+    });
+
+    downloadMailBtn.addEventListener('click', () => {
+      if (!mailResult.value.trim()) mailResult.value = buildMailText();
+
+      const blob = new Blob([mailResult.value], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      const dateStamp = toDateInputValue(new Date());
+      link.href = URL.createObjectURL(blob);
+      link.download = `zayavka-perevozchiku-${dateStamp}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
     });
 
     mailDateInput.value = toDateInputValue(getNextBusinessDay());
