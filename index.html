@@ -153,6 +153,19 @@
       border: 1px solid #ffc9cf;
     }
     .muted { color: #607089; }
+    .summary-pass {
+      color: #c1212f;
+      font-weight: 700;
+    }
+    .summary-output {
+      border: 1px solid #cdd5e4;
+      border-radius: 10px;
+      min-height: 240px;
+      padding: 10px;
+      background: #fff;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
 
     @media (max-width: 700px) {
       .position-item {
@@ -239,7 +252,7 @@
 
       <div>
         <label for="summaryResult">Готовая сводка</label>
-        <textarea id="summaryResult" style="min-height: 240px;"></textarea>
+        <div id="summaryResult" class="summary-output" contenteditable="true"></div>
         <div class="actions">
           <button class="secondary" type="button" id="copySummaryBtn">Скопировать сводку</button>
           <button class="secondary" type="button" id="clearSummaryBtn">Очистить сводку</button>
@@ -437,7 +450,7 @@
       document.body.removeChild(link);
     }
 
-    function createPositionRow(initialQty = 0, initialType = cargoTypes[0]) {
+    function createPositionRow(initialQty = '', initialType = cargoTypes[0]) {
       const row = document.createElement('div');
       row.className = 'position-item';
 
@@ -512,25 +525,28 @@
       const company = document.getElementById('mailCompany').value.trim();
       const pass = companies.find((c) => c.name === company)?.passRequired || 'нужен';
       const streetOnly = address.includes(',') ? address.split(',').slice(1).join(',').trim() : address;
-      const summaryDate = getNextBusinessDay();
 
       const positionsRaw = lines.join(' + ');
       const positions = normalizePositionText(positionsRaw) || '-';
 
-      const line = [
-        `${formatDate(summaryDate)}`,
+      const parts = [
+        `${company || '-'}`,
         `${streetOnly || '-'}`,
         `${actionType || '-'}`,
         `${positions}`,
-        pass === 'нужен' ? 'нужен пропуск' : '',
-      ].filter(Boolean).join(', ');
+      ];
 
-      if (!summaryResult.value.trim()) {
-        summaryResult.value = line;
+      if (pass === 'нужен') {
+        parts.push('<span class="summary-pass">пропуск</span>');
+      }
+
+      const line = parts.join(', ');
+
+      if (!summaryResult.textContent.trim()) {
+        summaryResult.innerHTML = line;
         return;
       }
-      summaryResult.value += `
-${line}`;
+      summaryResult.innerHTML += `<br>${line}`;
     }
 
     function fillMailFromCompany(company) {
@@ -576,7 +592,7 @@ ${line}`;
       });
     }
 
-    addPositionBtn.addEventListener('click', () => createPositionRow(0, cargoTypes[0]));
+    addPositionBtn.addEventListener('click', () => createPositionRow('', cargoTypes[0]));
 
     document.getElementById('generateMailBtn').addEventListener('click', () => {
       mailResult.value = buildMailText();
@@ -594,15 +610,15 @@ ${line}`;
     });
 
     document.getElementById('copySummaryBtn').addEventListener('click', async () => {
-      if (!summaryResult.value.trim()) return;
-      await navigator.clipboard.writeText(summaryResult.value);
+      if (!summaryResult.textContent.trim()) return;
+      await navigator.clipboard.writeText(summaryResult.innerText);
     });
 
     document.getElementById('clearSummaryBtn').addEventListener('click', () => {
       const confirmed = window.confirm('Очистить сводку?');
       if (!confirmed) return;
 
-      summaryResult.value = '';
+      summaryResult.innerHTML = '';
     });
 
     const nextBusinessDay = toDateInputValue(getNextBusinessDay());
