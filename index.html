@@ -281,13 +281,23 @@
       },
       {
         name: 'Тбанк',
-        displayName: 'Тбанк.Х',
-        address: 'г. Москва, ул. Хуторская, 38с22',
-        street: 'ул. Хуторская, 38с22',
+        displayName: 'Тбанк',
+        address: 'г. Москва, 2-ая Хуторская улица, д. 38Ас26',
+        street: '2-ая Хуторская улица, д. 38Ас26',
         frequency: 'очень часто',
         passRequired: 'не нужен',
         contactPhone: '8 963 772 24 26',
-        contactName: 'Губский Никита',
+        contactName: 'Губский никита',
+      },
+      {
+        name: 'Тбанк (Выборгская)',
+        displayName: 'Тбанк (Выборгская)',
+        address: 'г. Москва, ул. Выборгская, д. 22с2',
+        street: 'ул. Выборгская, д. 22с2',
+        frequency: 'часто',
+        passRequired: 'не нужен',
+        contactPhone: '8 962 356 29 83',
+        contactName: '',
       },
       {
         name: 'ПСБ',
@@ -537,6 +547,8 @@
     }
 
     function buildMailText() {
+      syncPlombsFromKksud();
+
       const company = document.getElementById('mailCompany').value.trim();
       const address = document.getElementById('mailAddress').value.trim();
       const actionType = document.getElementById('mailActionType').value;
@@ -596,6 +608,7 @@
       document.getElementById('mailAddress').value = company.address;
       document.getElementById('mailPhone').value = company.contactPhone || '';
       document.getElementById('mailName').value = company.contactName || '';
+      syncPlombsFromKksud();
       mailResult.value = buildMailText();
     }
 
