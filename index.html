@@ -281,7 +281,7 @@
       },
       {
         name: 'Тбанк',
-        displayName: 'Тбанк.Х',
+        displayName: 'Тбанк',
         address: 'г. Москва, ул. Хуторская, 38с22',
         street: 'ул. Хуторская, 38с22',
         frequency: 'очень часто',
@@ -298,6 +298,16 @@
         passRequired: 'нужен',
         contactPhone: '+7 (968) 925-97-24',
         contactName: 'Гельман Александр',
+      },
+      {
+        name: 'МОБ',
+        displayName: 'МОБ',
+        address: '',
+        street: '',
+        frequency: '',
+        passRequired: '',
+        contactPhone: '',
+        contactName: '',
       },
     ];
 
@@ -537,6 +547,8 @@
     }
 
     function buildMailText() {
+      syncPlombsFromKksud();
+
       const company = document.getElementById('mailCompany').value.trim();
       const address = document.getElementById('mailAddress').value.trim();
       const actionType = document.getElementById('mailActionType').value;
@@ -565,7 +577,7 @@
       const actionType = document.getElementById('mailActionType').value;
       const lines = getPositionLines();
       const company = document.getElementById('mailCompany').value.trim();
-      const pass = companies.find((c) => c.name === company)?.passRequired || 'нужен';
+      const pass = companies.find((c) => c.name === company)?.passRequired ?? '';
       const streetOnly = address.includes(',') ? address.split(',').slice(1).join(',').trim() : address;
 
       const positionsRaw = lines.join(' + ');
@@ -596,6 +608,7 @@
       document.getElementById('mailAddress').value = company.address;
       document.getElementById('mailPhone').value = company.contactPhone || '';
       document.getElementById('mailName').value = company.contactName || '';
+      syncPlombsFromKksud();
       mailResult.value = buildMailText();
     }
 
@@ -612,7 +625,11 @@
 
         const meta = document.createElement('div');
         meta.className = 'company-meta';
-        meta.textContent = `${company.address}. Частота: ${company.frequency}. Пропуск: ${company.passRequired}. Контакт: ${company.contactPhone} ${company.contactName}.`; 
+        const address = company.address || '—';
+        const frequency = company.frequency || '—';
+        const passRequired = company.passRequired || '—';
+        const contact = [company.contactPhone, company.contactName].filter(Boolean).join(' ') || '—';
+        meta.textContent = `${address}. Частота: ${frequency}. Пропуск: ${passRequired}. Контакт: ${contact}.`;
 
         details.append(summary, meta);
         companyBaseList.appendChild(details);
