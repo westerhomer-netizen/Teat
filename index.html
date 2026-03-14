@@ -200,10 +200,6 @@
           <label for="mailAddress">Адрес</label>
           <input id="mailAddress" required placeholder="г. Москва, ул. ..." />
         </div>
-        <div id="mailAddressSelectWrap" class="hidden">
-          <label for="mailAddressSelect">Выбор адреса</label>
-          <select id="mailAddressSelect"></select>
-        </div>
         <div>
           <label for="mailActionType">Тип операции</label>
           <select id="mailActionType">
@@ -348,8 +344,6 @@
     const mailResult = document.getElementById('mailResult');
     const summaryResult = document.getElementById('summaryResult');
     const mailAddressInput = document.getElementById('mailAddress');
-    const mailAddressSelectWrap = document.getElementById('mailAddressSelectWrap');
-    const mailAddressSelect = document.getElementById('mailAddressSelect');
 
     const positionsContainer = document.getElementById('positionsContainer');
     const addPositionBtn = document.getElementById('addPositionBtn');
@@ -639,30 +633,10 @@
       document.getElementById('mailName').value = location.contactName || '';
     }
 
-    function renderAddressSelect(company) {
-      const locations = getCompanyLocations(company);
-      mailAddressSelect.innerHTML = '';
-
-      if (locations.length <= 1) {
-        mailAddressSelectWrap.classList.add('hidden');
-        return;
-      }
-
-      mailAddressSelectWrap.classList.remove('hidden');
-      locations.forEach((location, index) => {
-        const option = document.createElement('option');
-        option.value = String(index);
-        option.textContent = location.address || `Адрес ${index + 1}`;
-        mailAddressSelect.appendChild(option);
-      });
-      mailAddressSelect.value = '0';
-    }
-
     function fillMailFromCompany(company) {
       document.getElementById('mailCompany').value = company.name;
-      renderAddressSelect(company);
       const locations = getCompanyLocations(company);
-      const selectedLocation = locations[0] || { address: '', contactPhone: '', contactName: '' };
+      const selectedLocation = locations[0] || { address: company.address || '', contactPhone: company.contactPhone || '', contactName: company.contactName || '' };
       applyLocationToMail(selectedLocation);
       syncPlombsFromKksud();
       mailResult.value = buildMailText();
@@ -716,20 +690,6 @@
 
     mailActionType.addEventListener('change', () => {
       syncPlombsFromKksud();
-    });
-
-    mailAddressSelect.addEventListener('change', () => {
-      const companyName = document.getElementById('mailCompany').value.trim();
-      const company = companies.find((item) => item.name === companyName);
-      if (!company) return;
-
-      const locations = getCompanyLocations(company);
-      const selectedIndex = Number(mailAddressSelect.value);
-      const selectedLocation = locations[selectedIndex] || locations[0];
-      if (!selectedLocation) return;
-
-      applyLocationToMail(selectedLocation);
-      mailResult.value = buildMailText();
     });
 
     document.getElementById('generateMailBtn').addEventListener('click', () => {
