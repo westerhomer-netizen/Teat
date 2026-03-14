@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Логистика: письма и сводка</title>
+  <style>
+    :root {
+      font-family: Inter, Arial, sans-serif;
+      color-scheme: light;
+    }
+    body {
+      margin: 0;
+      background: #f6f7fb;
+      color: #1e2a3a;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1 { margin: 0 0 8px; }
+    .lead { margin: 0 0 16px; color: #4e5a6d; }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      width: auto;
+      border: 1px solid #cfdbff;
+      background: #eef3ff;
+      color: #27417f;
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      background: #2f6fff;
+      border-color: #2f6fff;
+      color: #fff;
+    }
+
+    .panel {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 4px 18px rgba(24, 44, 86, 0.08);
+      margin-bottom: 16px;
+    }
+    .hidden { display: none; }
+
+    details {
+      border: 1px solid #d9e2f4;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfcff;
+    }
+    details + details { margin-top: 8px; }
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: #27417f;
+    }
+    .company-meta {
+      margin-top: 6px;
+      color: #4e5a6d;
+      font-size: 14px;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      color: #4e5a6d;
+      margin-bottom: 5px;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 10px;
+      border: 1px solid #cdd5e4;
+      padding: 10px;
+      font-size: 14px;
+      background: #fff;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+      line-height: 1.45;
+    }
+    button {
+      border: 0;
+      background: #2f6fff;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .secondary {
+      background: #eef3ff;
+      color: #27417f;
+      border: 1px solid #cfdbff;
+    }
+    .note {
+      margin: 10px 0 14px;
+      color: #4e5a6d;
+      font-size: 13px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .actions button {
+      width: auto;
+      min-width: 180px;
+    }
+
+    .quick-row {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+    }
+    .quick-row button {
+      width: auto;
+      white-space: nowrap;
+      min-width: 120px;
+    }
+
+    .position-item {
+      display: grid;
+      grid-template-columns: 150px 1fr auto;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    .remove-pos {
+      width: auto;
+      min-width: 44px;
+      background: #ffeff0;
+      color: #8f1f2a;
+      border: 1px solid #ffc9cf;
+    }
+    .muted { color: #607089; }
+    .summary-pass {
+      color: #c1212f;
+      font-weight: 700;
+    }
+    .summary-output {
+      border: 1px solid #cdd5e4;
+      border-radius: 10px;
+      min-height: 240px;
+      padding: 10px;
+      background: #fff;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 700px) {
+      .position-item {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Логистика компаний</h1>
+    <p class="lead">Три страницы: письмо, короткая сводка и база компаний.</p>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tabMail" type="button">Страница 1: Письмо</button>
+      <button class="tab-btn" id="tabSummary" type="button">Страница 2: Сводка</button>
+      <button class="tab-btn" id="tabBase" type="button">Страница 3: База компаний</button>
+    </div>
+
+    <section class="panel" id="pageMail">
+      <h2>Письмо для компаний</h2>
+      <p class="note">Быстрый доступ: только названия компаний, в одну горизонтальную линию.</p>
+
+      <div class="quick-row" id="mailQuickButtons"></div>
+
+      <form id="mailForm">
+        <div>
+          <label for="mailCompany">Компания</label>
+          <input id="mailCompany" placeholder="Например: ВЭБ" required />
+        </div>
+        <div>
+          <label for="mailAddress">Адрес</label>
+          <input id="mailAddress" required placeholder="г. Москва, ул. ..." />
+          <div id="mailAddressSelectWrap" class="note" style="margin-top: 6px; display: none;">
+            <label for="mailAddressSelect">Быстрый выбор адреса</label>
+            <select id="mailAddressSelect"></select>
+          </div>
+        </div>
+        <div>
+          <label for="mailActionType">Тип операции</label>
+          <select id="mailActionType">
+            <option>вывоз</option>
+            <option>доставка</option>
+          </select>
+        </div>
+        <div>
+          <label for="mailDate">Дата (по умолчанию: следующий рабочий день)</label>
+          <input id="mailDate" type="date" />
+        </div>
+
+        <div style="grid-column: 1 / -1;">
+          <label>Позиции</label>
+          <div id="positionsContainer"></div>
+          <button class="secondary" type="button" id="addPositionBtn">+ Добавить позицию</button>
+          <div class="note muted">По умолчанию есть одна позиция. Можно добавить дополнительные.</div>
+        </div>
+
+        <div>
+          <label for="mailPhone">Контактный телефон</label>
+          <input id="mailPhone" required placeholder="+7 999 123-45-67" />
+        </div>
+        <div>
+          <label for="mailName">Контактное имя</label>
+          <input id="mailName" required placeholder="Иван" />
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label for="mailExtra">Дополнительная информация</label>
+          <textarea id="mailExtra" placeholder="Например: пропуск оформить на водителя."></textarea>
+        </div>
+        <div>
+          <button type="button" id="generateMailBtn">Сформировать письмо</button>
+        </div>
+      </form>
+
+      <div>
+        <label for="mailResult">Готовый текст письма</label>
+        <textarea id="mailResult" readonly style="min-height: 180px;"></textarea>
+        <div class="actions">
+          <button class="secondary" type="button" id="copyMailBtn">Скопировать текст</button>
+          <button class="secondary" type="button" id="downloadMailPngBtn">Скачать PNG письма</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel hidden" id="pageSummary">
+      <h2>Короткая сводка на следующий день</h2>
+      <p class="note">Сводка формируется автоматически после каждого нажатия «Сформировать письмо».</p>
+
+      <div>
+        <label for="summaryResult">Готовая сводка</label>
+        <div id="summaryResult" class="summary-output" contenteditable="true"></div>
+        <div class="actions">
+          <button class="secondary" type="button" id="copySummaryBtn">Скопировать сводку</button>
+          <button class="secondary" type="button" id="clearSummaryBtn">Очистить сводку</button>
+        </div>
+        <p class="note muted">Вы можете вручную корректировать текст в этом окне перед копированием.</p>
+      </div>
+    </section>
+
+    <section class="panel hidden" id="pageBase">
+      <h2>База компаний</h2>
+      <div id="companyBaseList"></div>
+    </section>
+  </div>
+
+  <script>
+    const companies = [
+      {
+        name: 'ВЭБ',
+        displayName: 'ВЭБ',
+        frequency: 'часто',
+        passRequired: 'нужен',
+        addresses: [
+          {
+            address: 'г. Москва, ул. Воздвиженка, д. 10',
+            contactPhone: '8 (906) 093-52-45',
+            contactName: 'Баблоян Виген',
+          },
+        ],
+      },
+      {
+        name: 'Тбанк',
+        displayName: 'Тбанк',
+        frequency: 'очень часто',
+        passRequired: 'не нужен',
+        addresses: [
+          {
+            address: 'г. Москва, 2-ая Хуторская улица, д. 38Ас26',
+            contactPhone: '8 963 772 24 26',
+            contactName: 'Губсикй Никита',
+          },
+          {
+            address: 'г. Москва, ул. Выборгская, д. 22с2',
+            contactPhone: '8 962 356 29 83',
+            contactName: 'Егор',
+          },
+        ],
+      },
+      {
+        name: 'ПСБ',
+        displayName: 'ПСБ',
+        frequency: 'часто',
+        passRequired: 'нужен',
+        addresses: [
+          {
+            address: 'г. Москва, ул. Смирновская, д. 10с22',
+            contactPhone: '+7 (968) 925-97-24',
+            contactName: 'Гельман Александр',
+          },
+        ],
+      },
+    ];
+
+    const cargoTypes = [
+      'архивных коробов',
+      'архивных коробов с крышками',
+      'ККСУД',
+      'утиля',
+      'пломбы',
+      'папки',
+    ];
+
+    const tabMail = document.getElementById('tabMail');
+    const tabSummary = document.getElementById('tabSummary');
+    const tabBase = document.getElementById('tabBase');
+    const pageMail = document.getElementById('pageMail');
+    const pageSummary = document.getElementById('pageSummary');
+    const pageBase = document.getElementById('pageBase');
+
+    const mailDateInput = document.getElementById('mailDate');
+    const mailResult = document.getElementById('mailResult');
+    const summaryResult = document.getElementById('summaryResult');
+
+    const positionsContainer = document.getElementById('positionsContainer');
+    const addPositionBtn = document.getElementById('addPositionBtn');
+    const mailAddressSelect = document.getElementById('mailAddressSelect');
+    const mailAddressSelectWrap = document.getElementById('mailAddressSelectWrap');
+
+    function switchTab(tab) {
+      const isMail = tab === 'mail';
+      const isSummary = tab === 'summary';
+      const isBase = tab === 'base';
+
+      tabMail.classList.toggle('active', isMail);
+      tabSummary.classList.toggle('active', isSummary);
+      tabBase.classList.toggle('active', isBase);
+
+      pageMail.classList.toggle('hidden', !isMail);
+      pageSummary.classList.toggle('hidden', !isSummary);
+      pageBase.classList.toggle('hidden', !isBase);
+    }
+
+    tabMail.addEventListener('click', () => switchTab('mail'));
+    tabSummary.addEventListener('click', () => switchTab('summary'));
+    tabBase.addEventListener('click', () => switchTab('base'));
+
+    function getNextBusinessDay() {
+      const date = new Date();
+      date.setDate(date.getDate() + 1);
+      while (date.getDay() === 0 || date.getDay() === 6) {
+        date.setDate(date.getDate() + 1);
+      }
+      return date;
+    }
+
+    function toDateInputValue(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatDate(date) {
+      return date.toLocaleDateString('ru-RU');
+    }
+
+    function getActionText(actionType) {
+      if (actionType === 'доставка') return 'доставку';
+      if (actionType === 'вывоз') return 'вывоз';
+      return actionType;
+    }
+
+    function numberToWordsRu(number) {
+      const units = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+      const teens = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
+      const tens = ['', '', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
+      const hundreds = ['', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'];
+
+      if (number === 0) return 'ноль';
+      if (number > 999) return String(number);
+
+      const h = Math.floor(number / 100);
+      const t = Math.floor((number % 100) / 10);
+      const u = number % 10;
+
+      const parts = [];
+      if (h > 0) parts.push(hundreds[h]);
+      if (t === 1) {
+        parts.push(teens[u]);
+      } else {
+        if (t > 1) parts.push(tens[t]);
+        if (u > 0) parts.push(units[u]);
+      }
+      return parts.join(' ');
+    }
+
+    function makeLine(qty, type) {
+      if (!qty || qty < 1) return '';
+      return `${qty} (${numberToWordsRu(qty)}) ${type}`;
+    }
+
+    function normalizePositionText(text) {
+      return text
+        .replace(/\d+\s*\([^)]*\)\s*/g, (m) => m.replace(/\([^)]*\)/, '').replace(/\s+/g, ' ').trim() + ' ')
+        .replace(/архивных коробов с крышками/gi, 'АКсК')
+        .replace(/архивных коробов/gi, 'АК')
+        .replace(/\s*\+\s*/g, ', ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function downloadText(content, prefix) {
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${prefix}-${toDateInputValue(new Date())}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
+
+    function downloadMailAsPng(text) {
+      const lines = text.split('\n');
+      const font = '24px Arial';
+      const lineHeight = 38;
+      const padding = 40;
+
+      const measure = document.createElement('canvas').getContext('2d');
+      measure.font = font;
+      const maxWidth = Math.max(...lines.map((line) => measure.measureText(line).width), 600);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(maxWidth + padding * 2);
+      canvas.height = Math.ceil(lines.length * lineHeight + padding * 2);
+
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#1e2a3a';
+      ctx.font = font;
+
+      lines.forEach((line, i) => {
+        ctx.fillText(line, padding, padding + (i + 1) * lineHeight);
+      });
+
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `pismo-perevozchiku-${toDateInputValue(new Date())}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function createPositionRow(initialQty = '', initialType = cargoTypes[0]) {
+      const row = document.createElement('div');
+      row.className = 'position-item';
+
+      const qty = document.createElement('input');
+      qty.type = 'number';
+      qty.min = '0';
+      qty.value = String(initialQty);
+      qty.className = 'pos-qty';
+
+      const type = document.createElement('select');
+      type.className = 'pos-type';
+      cargoTypes.forEach((t) => {
+        const option = document.createElement('option');
+        option.value = t;
+        option.textContent = t;
+        if (t === initialType) option.selected = true;
+        type.appendChild(option);
+      });
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'remove-pos';
+      remove.textContent = '✕';
+      remove.addEventListener('click', () => {
+        if (positionsContainer.children.length === 1) return;
+        row.remove();
+      });
+
+      row.append(qty, type, remove);
+      positionsContainer.appendChild(row);
+    }
+
+    function getPositionEntries(options = {}) {
+      const { withAutoSeals = false } = options;
+      const rows = Array.from(positionsContainer.querySelectorAll('.position-item'));
+      const entries = rows
+        .map((row) => ({
+          qty: Number(row.querySelector('.pos-qty').value),
+          type: row.querySelector('.pos-type').value,
+        }))
+        .filter((entry) => entry.qty > 0);
+
+      if (withAutoSeals && document.getElementById('mailActionType').value === 'доставка') {
+        const kksudQty = entries
+          .filter((entry) => entry.type === 'ККСУД')
+          .reduce((sum, entry) => sum + entry.qty, 0);
+        if (kksudQty > 0) {
+          const sealQty = kksudQty * 3;
+          const sealsEntry = entries.find((entry) => entry.type === 'пломбы');
+          if (sealsEntry) {
+            sealsEntry.qty += sealQty;
+          } else {
+            entries.push({ qty: sealQty, type: 'пломбы' });
+          }
+        }
+      }
+
+      return entries;
+    }
+
+    function getPositionLines(options = {}) {
+      return getPositionEntries(options)
+        .map((entry) => makeLine(entry.qty, entry.type))
+        .filter(Boolean);
+    }
+
+    function buildMailText() {
+      const company = document.getElementById('mailCompany').value.trim();
+      const address = document.getElementById('mailAddress').value.trim();
+      const actionType = document.getElementById('mailActionType').value;
+      const phone = document.getElementById('mailPhone').value.trim();
+      const name = document.getElementById('mailName').value.trim();
+      const extra = document.getElementById('mailExtra').value.trim();
+
+      const selectedDate = mailDateInput.value ? new Date(`${mailDateInput.value}T00:00:00`) : getNextBusinessDay();
+      const lines = getPositionLines({ withAutoSeals: true });
+      const cargoText = lines.length ? lines.join(' + ') : 'без указания количества';
+
+      return [
+        'Здравствуйте,',
+        '',
+        `Направляю данные на ${getActionText(actionType)} для компании ${company}.`,
+        `Адрес: ${address} - ${cargoText}.`,
+        `Дата: ${formatDate(selectedDate)}.`,
+        `Контакт: ${phone} (${name}).`,
+        extra ? `Дополнительно: ${extra}` : '',
+      ].filter(Boolean).join('\n');
+    }
+
+
+    function syncSummaryFromMail() {
+      const address = document.getElementById('mailAddress').value.trim();
+      const actionType = document.getElementById('mailActionType').value;
+      const lines = getPositionLines({ withAutoSeals: true });
+      const company = document.getElementById('mailCompany').value.trim();
+      const pass = companies.find((c) => c.name === company)?.passRequired || 'нужен';
+      const streetOnly = address.includes(',') ? address.split(',').slice(1).join(',').trim() : address;
+
+      const positionsRaw = lines.join(' + ');
+      const positions = normalizePositionText(positionsRaw) || '-';
+
+      const parts = [
+        `${company || '-'}`,
+        `${streetOnly || '-'}`,
+        `${actionType || '-'}`,
+        `${positions}`,
+      ];
+
+      if (pass === 'нужен') {
+        parts.push('<span class="summary-pass">пропуск</span>');
+      }
+
+      const line = parts.join(', ');
+
+      if (!summaryResult.textContent.trim()) {
+        summaryResult.innerHTML = line;
+        return;
+      }
+      summaryResult.innerHTML += `<br>${line}`;
+    }
+
+    function getCompanyByName(name) {
+      return companies.find((company) => company.name === name || company.displayName === name);
+    }
+
+    function applyCompanyAddress(company, addressIndex = 0) {
+      const selectedAddress = company.addresses[addressIndex] || company.addresses[0];
+      if (!selectedAddress) return;
+
+      document.getElementById('mailAddress').value = selectedAddress.address;
+      document.getElementById('mailPhone').value = selectedAddress.contactPhone || '';
+      document.getElementById('mailName').value = selectedAddress.contactName || '';
+      mailResult.value = buildMailText();
+    }
+
+    function renderAddressSelector(company) {
+      const addresses = company?.addresses || [];
+      mailAddressSelect.innerHTML = '';
+
+      if (addresses.length <= 1) {
+        mailAddressSelectWrap.style.display = 'none';
+        return;
+      }
+
+      addresses.forEach((entry, idx) => {
+        const option = document.createElement('option');
+        option.value = String(idx);
+        option.textContent = entry.address;
+        mailAddressSelect.appendChild(option);
+      });
+
+      mailAddressSelectWrap.style.display = 'block';
+      mailAddressSelect.value = '0';
+    }
+
+    function fillMailFromCompany(company) {
+      document.getElementById('mailCompany').value = company.name;
+      renderAddressSelector(company);
+      applyCompanyAddress(company, 0);
+    }
+
+
+    function renderCompanyBase() {
+      const companyBaseList = document.getElementById('companyBaseList');
+      companyBaseList.innerHTML = '';
+      companies.forEach((company, index) => {
+        const details = document.createElement('details');
+        if (index === 0) details.open = true;
+
+        const summary = document.createElement('summary');
+        summary.textContent = company.displayName || company.name;
+
+        const meta = document.createElement('div');
+        meta.className = 'company-meta';
+        meta.textContent = `${company.addresses.map((entry) => `${entry.address} (контакт: ${entry.contactPhone} ${entry.contactName})`).join('; ')}. Частота: ${company.frequency}. Пропуск: ${company.passRequired}.`; 
+
+        details.append(summary, meta);
+        companyBaseList.appendChild(details);
+      });
+    }
+
+    function renderQuickButtons() {
+      const mailQuickButtons = document.getElementById('mailQuickButtons');
+      mailQuickButtons.innerHTML = '';
+
+      companies.forEach((company) => {
+        const mailBtn = document.createElement('button');
+        mailBtn.type = 'button';
+        mailBtn.className = 'secondary';
+        mailBtn.textContent = company.displayName || company.name;
+        mailBtn.addEventListener('click', () => fillMailFromCompany(company));
+        mailQuickButtons.appendChild(mailBtn);
+
+      });
+    }
+
+    addPositionBtn.addEventListener('click', () => createPositionRow('', cargoTypes[0]));
+
+    document.getElementById('generateMailBtn').addEventListener('click', () => {
+      mailResult.value = buildMailText();
+      syncSummaryFromMail();
+    });
+
+    document.getElementById('copyMailBtn').addEventListener('click', async () => {
+      if (!mailResult.value.trim()) mailResult.value = buildMailText();
+      await navigator.clipboard.writeText(mailResult.value);
+    });
+
+    document.getElementById('downloadMailPngBtn').addEventListener('click', () => {
+      if (!mailResult.value.trim()) mailResult.value = buildMailText();
+      downloadMailAsPng(mailResult.value);
+    });
+
+    mailAddressSelect.addEventListener('change', () => {
+      const company = getCompanyByName(document.getElementById('mailCompany').value.trim());
+      if (!company) return;
+      applyCompanyAddress(company, Number(mailAddressSelect.value));
+    });
+
+    document.getElementById('mailCompany').addEventListener('change', () => {
+      const company = getCompanyByName(document.getElementById('mailCompany').value.trim());
+      if (!company) {
+        mailAddressSelectWrap.style.display = 'none';
+        return;
+      }
+      fillMailFromCompany(company);
+    });
+
+    document.getElementById('copySummaryBtn').addEventListener('click', async () => {
+      if (!summaryResult.textContent.trim()) return;
+      await navigator.clipboard.writeText(summaryResult.innerText);
+    });
+
+    document.getElementById('clearSummaryBtn').addEventListener('click', () => {
+      const confirmed = window.confirm('Очистить сводку?');
+      if (!confirmed) return;
+
+      summaryResult.innerHTML = '';
+    });
+
+    const nextBusinessDay = toDateInputValue(getNextBusinessDay());
+    mailDateInput.value = nextBusinessDay;
+
+    createPositionRow();
+    renderCompanyBase();
+    renderQuickButtons();
+    fillMailFromCompany(companies[0]);
+  </script>
+</body>
+</html>
