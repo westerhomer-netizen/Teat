@@ -429,23 +429,29 @@
     }
 
     function syncPlombsFromKksud() {
-      if (mailActionType.value !== 'доставка') return;
-
+      const isDelivery = mailActionType.value === 'доставка';
       const kksudRow = findRowByType('ККСУД');
-      if (!kksudRow) return;
+      const kksudQty = isDelivery && kksudRow ? Number(kksudRow.querySelector('.pos-qty').value) || 0 : 0;
 
-      const kksudQty = Number(kksudRow.querySelector('.pos-qty').value) || 0;
-      if (kksudQty < 1) return;
+      const autoPlombsRow = getPositionRows().find((row) => row.dataset.autoPlombs === 'true');
+      if (kksudQty < 1) {
+        if (autoPlombsRow) autoPlombsRow.remove();
+        return;
+      }
 
       const plombQty = kksudQty * 3;
       let plombRow = findRowByType('пломбы');
 
       if (!plombRow) {
         createPositionRow(plombQty, 'пломбы');
-        return;
+        const createdRows = getPositionRows();
+        plombRow = createdRows[createdRows.length - 1];
       }
 
-      plombRow.querySelector('.pos-qty').value = String(plombQty);
+      if (plombRow) {
+        plombRow.dataset.autoPlombs = 'true';
+        plombRow.querySelector('.pos-qty').value = String(plombQty);
+      }
     }
 
 
