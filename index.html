@@ -281,7 +281,7 @@
       },
       {
         name: 'Тбанк',
-        displayName: 'Тбанк.Х',
+        displayName: 'Тбанк',
         address: 'г. Москва, ул. Хуторская, 38с22',
         street: 'ул. Хуторская, 38с22',
         frequency: 'очень часто',
@@ -537,6 +537,8 @@
     }
 
     function buildMailText() {
+      syncPlombsFromKksud();
+
       const company = document.getElementById('mailCompany').value.trim();
       const address = document.getElementById('mailAddress').value.trim();
       const actionType = document.getElementById('mailActionType').value;
@@ -596,6 +598,7 @@
       document.getElementById('mailAddress').value = company.address;
       document.getElementById('mailPhone').value = company.contactPhone || '';
       document.getElementById('mailName').value = company.contactName || '';
+      syncPlombsFromKksud();
       mailResult.value = buildMailText();
     }
 
